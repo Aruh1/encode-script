@@ -38,7 +38,7 @@
 *.webm
 *.webp
 *.y4m
-*.yml
+# *.yml
 
 
 # VapourSynth & Indexing files
@@ -122,7 +122,7 @@ __pycache__/
 *.url
 *.xcf
 *.xz
-*.yml
+# *.yml
 *.zip
 *comp.*py
 *diff.*py
