@@ -1,10 +1,9 @@
-from vstools import  vs, core, depth, get_y, set_output
-
 from havsfunc import SMDegrain
-from vsdehalo import fine_dehalo, dehalo_sigma
+from kagefunc import adaptive_grain, inverse_scale
+from polofunc import masked_f3kdb, nnedi3_rpow2
+from vsdehalo import dehalo_sigma, fine_dehalo
 from vsdenoise import Prefilter
-from kagefunc import inverse_scale, adaptive_grain
-from polofunc import nnedi3_rpow2, masked_f3kdb
+from vstools import core, depth, get_y, set_output, vs
 
 core.max_cache_size = 1024 * 2
 
