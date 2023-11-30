@@ -1,0 +1,9 @@
+// Binding for previewing a VapourSynth filterchain using vs-preview
+{
+    "key": "F5",
+    "command": "workbench.action.terminal.sendSequence",
+    "args": {
+        "text": "python -m vspreview \"${file}\"\u000D"
+    },
+    "when": "resourceExtname == '.vpy'"
+}
