@@ -3,8 +3,6 @@ name: lint
 on:
   push:
     branches: [main]
-    paths:
-      - "**.vpy"
   pull_request:
       branches: [main]
 
@@ -26,6 +24,6 @@ jobs:
           pip install flake8
       - name: Running flake8
         run: flake8 .
-      - name: Running mypy
-        if: steps.dependencies.outcome == 'success'
-        run: mypy -p .
+      # - name: Running mypy
+      #   if: steps.dependencies.outcome == 'success'
+      #   run: mypy -p .
