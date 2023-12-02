@@ -1,11 +1,51 @@
 from havsfunc import SMDegrain
 from kagefunc import adaptive_grain
-from polofunc import masked_f3kdb, nnedi3_rpow2
+from polofunc import masked_f3kdb
 from vsdehalo import dehalo_sigma, fine_dehalo
 from vsdenoise import Prefilter
 from vstools import core, depth, get_y, set_output, vs
+from typing import Any, Callable, Dict
 
 core.max_cache_size = 1024 * 2
+
+### CUSTOM FUNCTIONS
+def taa(clip: vs.VideoNode, aafun: Callable[[vs.VideoNode], vs.VideoNode]) -> vs.VideoNode:
+    """
+    Perform transpose AA.
+    :param clip:   Input clip.
+    :param aafun:  Antialiasing function
+    :return:       Antialiased clip
+    """
+    if clip.format is None:
+        raise ValueError("taa: 'Variable-format clips not supported'")
+
+    y = get_y(clip)
+
+    aa = aafun(y.std.Transpose())
+    aa = aa.resize.Spline36(height=clip.width, src_top=0.5).std.Transpose()
+    aa = aafun(aa)
+    aa = aa.resize.Spline36(height=clip.height, src_top=0.5)
+
+    return aa if clip.format.color_family == vs.GRAY \
+        else core.std.ShufflePlanes([aa, clip], planes=[0, 1, 2], colorfamily=vs.YUV)
+
+def nnedi3(clip: vs.VideoNode, opencl: bool = False, **override: Any) -> vs.VideoNode:
+    """
+    Standard nnedi3 antialiasing.
+    :param clip:     Input clip
+    :param opencl:   Use OpenCL (Default: False)
+    :param override: nnedi3 parameter overrides
+    :return:         Antialiased clip
+    """
+    nnedi3_args: Dict[str, Any] = dict(field=0, dh=True, nsize=3, nns=3, qual=1)
+    nnedi3_args.update(override)
+
+    def _nnedi3(clip: vs.VideoNode) -> vs.VideoNode:
+        return clip.nnedi3cl.NNEDI3CL(**nnedi3_args) if opencl \
+            else clip.nnedi3.nnedi3(**nnedi3_args)
+
+    return taa(clip, _nnedi3)
+
 
 ###GETTING SOURCES
 src = core.lsmas.LWLibavSource(
@@ -14,14 +54,12 @@ src = core.lsmas.LWLibavSource(
 bit = depth(src, 16)
 
 ###AA
-# scaled = inverse_scale(bit, height=878, mask_detail=True)
-scaledyuv = nnedi3_rpow2(bit).resize.Spline36(1920, 1080, format=vs.YUV420P16)
-scaled = nnedi3_rpow2(bit).resize.Spline36(1920, 1080, format=vs.GRAY16)
+aa = nnedi3(bit, opencl=False)
 
 preden = SMDegrain(get_y(bit), tr=2, thSAD=120, RefineMotion=True, prefilter=2)
 mask = preden.std.Prewitt().std.Binarize(65 << 8)
 aamask = mask.std.Inflate()
-aamasked = core.std.MaskedMerge(get_y(bit), scaled, aamask)
+aamasked = core.std.MaskedMerge(get_y(bit), aa, aamask)
 
 grainmask1 = mask.std.Deflate().std.Deflate()
 grainmask2 = core.std.Expr([aamask.std.Inflate(), grainmask1], "x y -").std.BoxBlur()
@@ -66,8 +104,6 @@ grain = adaptive_grain(deband, 0.8)
 ###OUTPUT
 out = depth(grain, 10)
 merge = depth(merge, 10)
-scaledyuv = depth(scaledyuv, 10)
 set_output(src, "JPBD")
-# set_output(scaledyuv, "scaled")
 set_output(out, "filtering")
 set_output(merge, "merge")
