@@ -40,15 +40,6 @@ deband = masked_f3kdb(merge_mask, rad=20, thr=[28, 24], grain=[24, 12])
 
 grain = adaptive_grain(deband, 0.8)
 
-sc1 = "JPBD"
-sc2 = "filtering"
-
-clip1 = FrameInfo(bd, sc1)
-clip2 = FrameInfo(grain, sc2)
-
-clip1 = clip1.std.SetFrameProp("Name", data=sc1)
-clip2 = clip2.std.SetFrameProp("Name", data=sc2)
-
-out = depth(clip2, 10)
-set_output(clip1, "JPBD")
+out = depth(grain, 10)
+# set_output(src, "JPBD")
 set_output(out, "filtering")
