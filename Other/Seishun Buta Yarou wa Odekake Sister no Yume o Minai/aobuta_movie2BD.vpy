@@ -1,5 +1,5 @@
 import rekt
-from awsmfunc import FrameInfo, bbmod
+from awsmfunc import bbmod
 from kagefunc import adaptive_grain
 from polofunc import masked_f3kdb, nnedi3
 from vsdehalo import fine_dehalo
