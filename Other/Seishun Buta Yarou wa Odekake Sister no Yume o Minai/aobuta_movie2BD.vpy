@@ -13,19 +13,10 @@ bd = core.lsmas.LWLibavSource(
 )
 src = depth(bd, 16)
 
-ef = rekt.rektlvls(
-    src,
-    prot_val=[16, 235],
-    rownum=[0, src.height - 1],
-    rowval=[16, 16],
-    colnum=[0, src.width - 1],
-    colval=[16, 16],
-)
-bb_y = bbmod(ef, left=1, top=1, right=1, bottom=1, thresh=32, y=True, u=False, v=False)
-bb_uv = bbmod(bb_y, left=2, top=2, right=2, bottom=2, y=False, u=True, v=True)
+edgefix = bbmod(src, 1, 1, 1, 1, 30)
 
 sloc = [0, 0, 0.4, 1, 0.45, 3, 0.5, 5, 1, 32]
-denoise = core.dfttest.DFTTest(bb_uv, tbsize=1, slocation=sloc)
+denoise = core.dfttest.DFTTest(edgefix, tbsize=1, slocation=sloc)
 aa = nnedi3(denoise, opencl=False)
 
 dehalo = fine_dehalo(denoise)
@@ -34,7 +25,7 @@ dehalo_mask = (
     .std.Binarize(5000)
     .std.Maximum()
 )
-merge_mask = core.std.MaskedMerge(aa, dehalo, dehalo_mask)
+merge_mask = core.std.MaskedMerge(dehalo, aa, dehalo_mask)
 
 deband = masked_f3kdb(merge_mask, rad=20, thr=[28, 24], grain=[24, 12])
 
