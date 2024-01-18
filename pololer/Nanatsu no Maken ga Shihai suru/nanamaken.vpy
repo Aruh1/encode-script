@@ -6,24 +6,18 @@ from vsdenoise import BM3DCPU, Profile
 from kagefunc import retinex_edgemask
 from vsdeband import F3kdb
 from kagefunc import adaptive_grain
-from awsmfunc import bbmod
 from polofunc import nnedi3
-from vsdehalo import smooth_dering
 
 core.max_cache_size = 1024 * 8
 
 src = core.lsmas.LWLibavSource(r"00004.m2ts")
 bit = initialize_clip(src, 16)
 
-edgefix = bbmod(bit, 1, 1, 1, 1, 30)
-
 # descale = DescaleTarget(height=810, kernel=Bilinear,upscaler=NNEDI_Doubler(opencl=False)).generate_clips(src)
 # rescaled = descale.get_upscaled(src)
 
 denoise= BM3DCPU.denoise(bit,1,1,profile=Profile.LOW_COMPLEXITY)
 aa = nnedi3(denoise, opencl=False)
-
-dering = smooth_dering(aa, mrad=3, msmooth=1, minp=1, mthr=0.20, darkthr=0, contra=0)
 
 mask_deband = retinex_edgemask(aa)
 deband = F3kdb.deband(aa)
