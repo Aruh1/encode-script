@@ -20,7 +20,7 @@ edgefix = bbmod(src, 1, 1, 1, 1, 30)
 # rescaled = descale.get_upscaled(src)
 
 denoise = BM3DCPU.denoise(
-    edgefix, 1, 1, profile=Profile.HIGH
+    edgefix, 1, 1, profile=Profile.LOW_COMPLEXITY
 )
 
 aa = nnedi3(denoise, opencl=False)
