@@ -14,7 +14,7 @@ core.max_cache_size = 1024 * 16
 source = core.lsmas.LWLibavSource(r"00000.m2ts")
 src = initialize_clip(source, 16)
 
-descale = DescaleTarget(height=856, kernel=Mitchell, upscaler=NNEDI_Doubler(opencl=False), downscaler=Gaussian(0.375, linear=True))
+descale = DescaleTarget(height=956, kernel=Mitchell, upscaler=NNEDI_Doubler(opencl=False), downscaler=Gaussian(0.375, linear=True))
 rescale = descale.get_upscaled(src)
 
 denoise = BM3DCPU.denoise(
