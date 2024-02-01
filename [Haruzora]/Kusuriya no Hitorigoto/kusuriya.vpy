@@ -11,7 +11,7 @@ from vskernels import Gaussian, Mitchell
 
 core.max_cache_size = 1024 * 16
 
-source = core.lsmas.LWLibavSource(r"C:\Users\samehadaku\Downloads\00000.m2ts")
+source = core.lsmas.LWLibavSource(r"00000.m2ts")
 src = initialize_clip(source, 16)
 
 descale = DescaleTarget(height=856, kernel=Mitchell, upscaler=NNEDI_Doubler(opencl=False), downscaler=Gaussian(0.375, linear=True))
