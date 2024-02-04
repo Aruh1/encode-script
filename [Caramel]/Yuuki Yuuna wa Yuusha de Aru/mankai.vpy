@@ -4,9 +4,9 @@ from polofunc import nnedi3
 from vstools import core, set_output, initialize_clip, finalize_clip
 from vsdenoise import BM3DCPU, Profile
 from kagefunc import adaptive_grain, retinex_edgemask
-from vsdeband import F3kdb
+from vsdeband import F3kdb, deband_detail_mask
 from vspreview  import is_preview
-from vsdehalo import fine_dehalo2
+from vsdehalo import fine_dehalo
 
 core.max_cache_size = 1024 * 20
 
@@ -16,9 +16,9 @@ src = initialize_clip(source, 16)
 denoise = BM3DCPU.denoise(src, 1, 1, profile=Profile.LOW_COMPLEXITY)
 
 aa = nnedi3(denoise)
-halo = fine_dehalo2(aa)
+halo = fine_dehalo(aa)
 
-mask_deband = retinex_edgemask(halo, sigma=1)
+mask_deband = deband_detail_mask(halo)
 f3k = F3kdb.deband(halo, 16, [36, 40, 40], 0)
 debanded = core.std.MaskedMerge(f3k, halo, mask_deband)
 
