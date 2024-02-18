@@ -1,4 +1,7 @@
 {
-    // List of extensions which should be recommended for users of this workspace.
-    "recommendations": ["ms-python.python"]
-}
+    "recommendations": [
+      "charliermarsh.ruff",
+      "ms-python.python",
+      "tamasfe.even-better-toml"
+    ]
+  }
