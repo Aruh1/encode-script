@@ -190,6 +190,8 @@ rename.py
 # Exceptions
 !settings
 !requirements.txt
+!requirements-dev.txt
+!ci.yml
 
 # Exceptions to the exceptions
 *.lnk
