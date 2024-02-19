@@ -13,7 +13,9 @@ source = core.lsmas.LWLibavSource(
 )
 src = initialize_clip(source, 16)
 
-denoise = BM3DCPU.denoise(src, 0.7, 3, profile=Profile.LOW_COMPLEXITY)
+# Native resolution is ~900p, but nevertheless it's not descaleable.
+
+denoise = BM3DCPU.denoise(src, 1, 3, profile=Profile.LOW_COMPLEXITY)
 
 aa = transpose_aa(denoise, Eedi3(opencl=False))
 
@@ -21,7 +23,7 @@ mask_deband = deband_detail_mask(aa)
 f3k = F3kdb.deband(aa)
 debanded = core.std.MaskedMerge(f3k, aa, mask_deband)
 
-grain = adaptive_grain(debanded, 0.2)
+grain = adaptive_grain(debanded, 0.4)
 
 final = finalize_clip(grain, 10, False)
 
