@@ -3,16 +3,18 @@
 from kagefunc import adaptive_grain
 from vsaa import Eedi3, transpose_aa
 from vsdeband import F3kdb, deband_detail_mask
+from vsdehalo import edge_cleaner, fine_dehalo
 from vsdenoise import BM3DCPU, Profile
+from vsrgtools import contrasharpening_dehalo
 from vstools import core, finalize_clip, initialize_clip, set_output
 
 core.max_cache_size = 1024 * 30
 
-source = core.lsmas.LWLibavSource(r"")
+source = core.lsmas.LWLibavSource(r"")[0:34047]
 Freeze = core.std.FreezeFrames(source, first=[12038], last=[12220], replacement=[12037])
 src = initialize_clip(Freeze, 16)
 
-denoise = BM3DCPU.denoise(src, 1, 3, profile=Profile.LOW_COMPLEXITY)
+denoise = BM3DCPU.denoise(src, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
 
 aa = transpose_aa(denoise, Eedi3(opencl=False))
 
@@ -20,7 +22,13 @@ mask_deband = deband_detail_mask(aa)
 f3k = F3kdb.deband(aa)
 debanded = core.std.MaskedMerge(f3k, aa, mask_deband)
 
-grain = adaptive_grain(debanded, 0.4)
+dehalo = fine_dehalo(debanded, 2.2, 2.2, brightstr=1, darkstr=0)
+dehalo_mask = fine_dehalo(debanded, 2.2, 2.2, brightstr=1, darkstr=0, show_mask=True)
+edgeclean = edge_cleaner(dehalo, 7, False)
+edgeclean = core.std.MaskedMerge(dehalo, edgeclean, dehalo_mask)
+contra = contrasharpening_dehalo(edgeclean, dehalo)
+
+grain = adaptive_grain(contra, 0.4)
 
 final = finalize_clip(grain, 10, False)
 
