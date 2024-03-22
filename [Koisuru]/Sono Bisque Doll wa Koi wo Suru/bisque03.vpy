@@ -24,7 +24,8 @@ core.max_cache_size = 1024 * 30
 source = src_file(r"", trim=(0, 34047), force_lsmas=True)
 src = source.init_cut()
 
-denoise = BM3DCPU.denoise(src, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
+freeze = core.std.FreezeFrames(src, first=[12038], last=[12220], replacement=[12037])
+denoise = BM3DCPU.denoise(freeze, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
 
 aa = transpose_aa(denoise, Eedi3(opencl=False))
 
