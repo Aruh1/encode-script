@@ -1,5 +1,5 @@
 pymediainfo==6.1.0
-sox==1.4.1
+sox==1.5.0
 
 # JET
 lvsfunc @ git+https://github.com/Jaded-Encoding-Thaumaturgy/lvsfunc
