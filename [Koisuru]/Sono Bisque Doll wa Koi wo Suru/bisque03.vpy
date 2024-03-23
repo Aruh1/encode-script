@@ -7,6 +7,7 @@ from vsdehalo import edge_cleaner, fine_dehalo
 from vsdenoise import BM3DCPU, Profile
 from vsmuxtools import (
     FLAC,
+    Resample,
     Setup,
     VideoFile,
     do_audio,
@@ -17,11 +18,11 @@ from vsmuxtools import (
 )
 from vspreview import is_preview
 from vsrgtools import contrasharpening_dehalo
-from vstools import core, finalize_clip, set_output
+from vstools import Sar, core, finalize_clip, set_output
 
 core.max_cache_size = 1024 * 30
 
-source = src_file(r"", trim=(0, 34047), force_lsmas=True)
+source = src_file(r"00002.m2ts", trim=(None, 34047), force_lsmas=True)
 src = source.init_cut()
 
 freeze = core.std.FreezeFrames(src, first=[12038], last=[12220], replacement=[12037])
@@ -29,17 +30,18 @@ denoise = BM3DCPU.denoise(freeze, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
 
 aa = transpose_aa(denoise, Eedi3(opencl=False))
 
-mask_deband = deband_detail_mask(aa)
-f3k = F3kdb.deband(aa)
-debanded = core.std.MaskedMerge(f3k, aa, mask_deband)
-
-dehalo = fine_dehalo(debanded, 2.2, 2.2, brightstr=1, darkstr=0)
-dehalo_mask = fine_dehalo(debanded, 2.2, 2.2, brightstr=1, darkstr=0, show_mask=True)
+dehalo = fine_dehalo(aa, 2.2, 2.2, brightstr=1, darkstr=0)
+dehalo_mask = fine_dehalo(aa, 2.2, 2.2, brightstr=1, darkstr=0, show_mask=True)
 edgeclean = edge_cleaner(dehalo, 7, False)
 edgeclean = core.std.MaskedMerge(dehalo, edgeclean, dehalo_mask)
 contra = contrasharpening_dehalo(edgeclean, dehalo)
+sar = Sar(1, 1).apply(contra)
 
-grain = adaptive_grain(contra, 0.4)
+mask_deband = deband_detail_mask(sar)
+f3k = F3kdb.deband(sar)
+debanded = core.std.MaskedMerge(f3k, sar, mask_deband)
+
+grain = adaptive_grain(sar, 0.4)
 
 final = finalize_clip(grain, 10, False)
 
@@ -71,10 +73,13 @@ else:
         ).encode(final)
     )
 
-    # Audio
-    audio = do_audio(source, track=0, encoder=FLAC(), quite=True)
+    audio = do_audio(
+        source,
+        track=0,
+        encoder=FLAC(preprocess=Resample(depth=24)),
+    )
 
     mux(
         video_hevc.to_track(lang="jpn", default=True, forced=False),
-        audio.to_track("FLAc 2.0", "jpn", default=True, forced=False),
+        audio.to_track("FLAC 2.0", "jpn", default=True, forced=False),
     )
