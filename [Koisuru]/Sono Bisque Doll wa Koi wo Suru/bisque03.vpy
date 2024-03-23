@@ -41,7 +41,7 @@ mask_deband = deband_detail_mask(sar)
 f3k = F3kdb.deband(sar)
 debanded = core.std.MaskedMerge(f3k, sar, mask_deband)
 
-grain = adaptive_grain(sar, 0.4)
+grain = adaptive_grain(debanded, 0.4)
 
 final = finalize_clip(grain, 10, False)
 
