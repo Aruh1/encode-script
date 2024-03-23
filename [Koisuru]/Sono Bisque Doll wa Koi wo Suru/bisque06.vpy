@@ -18,14 +18,15 @@ from vsmuxtools import (
 )
 from vspreview import is_preview
 from vsrgtools import contrasharpening_dehalo
-from vstools import Sar, core, finalize_clip, get_y, replace_ranges, set_output
+from vstools import Sar, core, finalize_clip, get_y, set_output
+from vstools import replace_ranges as rfs
 
 core.max_cache_size = 1024 * 30
 
-source = src_file(r"00004.m2ts", force_lsmas=True)
+source = src_file(r"00004.m2ts", trim=(None, 34044), force_lsmas=True)
 src = source.init_cut()
 
-cden = replace_ranges(
+cden = rfs(
     src,
     src.std.MaskedMerge(
         src[5424] * src.num_frames,
@@ -89,7 +90,7 @@ else:
     audio = do_audio(
         source,
         track=0,
-        encoder=FLAC(preprocess=Resample(depth=24)),
+        encoder=FLAC(preprocess=Resample(depth=None)),
     )
 
     mux(
