@@ -18,15 +18,28 @@ from vsmuxtools import (
 )
 from vspreview import is_preview
 from vsrgtools import contrasharpening_dehalo
-from vstools import Sar, core, finalize_clip, set_output
+from vstools import Sar, core, finalize_clip, get_y, replace_ranges, set_output
 
 core.max_cache_size = 1024 * 30
 
-source = src_file(r"00002.m2ts", trim=(None, 34047), force_lsmas=True)
+source = src_file(r"00004.m2ts", force_lsmas=True)
 src = source.init_cut()
 
-freeze = core.std.FreezeFrames(src, first=[12038], last=[12220], replacement=[12037])
-denoise = BM3DCPU.denoise(freeze, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
+cden = replace_ranges(
+    src,
+    src.std.MaskedMerge(
+        src[5424] * src.num_frames,
+        get_y(src)
+        .std.BlankClip()
+        .sub.Subtitle(
+            "{\\an7\\pos(0,0)\\p1\\c&HFFFFFF&}m 0 0 l 1438 0 1447 1080 0 1080"
+        )
+        .std.BinarizeMask(),
+    ),
+    (5425, 5482),
+)
+
+denoise = BM3DCPU.denoise(cden, 0.75, 3, profile=Profile.LOW_COMPLEXITY)
 
 aa = transpose_aa(denoise, Eedi3(opencl=False))
 
@@ -49,7 +62,7 @@ if is_preview():
     set_output(src, "JPBD")
     set_output(final, "filter")
 else:
-    setup = Setup("03")
+    setup = Setup("06")
     settings = settings_builder_x265(
         preset="veryslow",
         crf=13,
@@ -76,7 +89,7 @@ else:
     audio = do_audio(
         source,
         track=0,
-        encoder=FLAC(preprocess=Resample(depth=None)),
+        encoder=FLAC(preprocess=Resample(depth=24)),
     )
 
     mux(
