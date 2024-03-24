@@ -1,10 +1,11 @@
 from pathlib import Path
 
-from kagefunc import adaptive_grain, squaremask
+from kagefunc import adaptive_grain
 from vsaa import Eedi3, transpose_aa
 from vsdeband import F3kdb, deband_detail_mask
 from vsdehalo import edge_cleaner, fine_dehalo
 from vsdenoise import BM3DCPU, Profile
+from vsmasktools import squaremask
 from vsmuxtools import (
     FLAC,
     Resample,
