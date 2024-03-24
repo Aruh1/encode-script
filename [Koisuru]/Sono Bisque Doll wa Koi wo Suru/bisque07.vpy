@@ -57,7 +57,7 @@ if is_preview():
     set_output(src, "JPBD")
     set_output(final, "filter")
 else:
-    setup = Setup("06")
+    setup = Setup("07")
     settings = settings_builder_x265(
         preset="veryslow",
         crf=13,
