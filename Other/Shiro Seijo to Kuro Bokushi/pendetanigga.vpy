@@ -1,45 +1,85 @@
-"""vspipe kusuriya.vpy -c y4m - | x265-x64-v3.5+131-aMod-gcc13.1.0-opt-znver4.exe --y4m - --fps 24000/1001 --preset veryslow --profile main10 --output-depth 10 --input-depth 10 --crf 13 --no-cutree --no-sao --no-sao-non-deblock --keyint 240 --bframes 12 --psy-rd 2 --psy-rdoq 2.0 --aq-mode 3 --aq-strength 1.00 --ref 5 --rd 3 --subme 5 --qcomp 0.73 --colorprim bt709 --transfer bt709 --colormatrix bt709 --cbqpoffs -2 --crqpoffs -2 --tu-intra-depth 2 --tu-inter-depth 2 --sar 1 --no-rect --no-amp --no-tskip --b-intra --weightb --rskip 0 --no-strong-intra-smoothing --no-open-gop --deblock=-2:-2 --rc-lookahead 60 --limit-refs 1 --min-luma 64 --max-luma 940 --range limited --output "kusuriya.hevc"""
+from pathlib import Path
 
-from polofunc import nnedi3
-from vstools import core, set_output, initialize_clip, finalize_clip
-from vsdenoise import BM3DCPU, Profile
-from kagefunc import adaptive_grain, retinex_edgemask
-from vsdeband import F3kdb
-from vspreview  import is_preview
+from kagefunc import adaptive_grain
 from vodesfunc import DescaleTarget, NNEDI_Doubler
-from vskernels import Gaussian, Lanczos
+from vsaa import Eedi3, transpose_aa
+from vsdeband import F3kdb, deband_detail_mask
+from vsdenoise import BM3DCPU, Profile
+from vskernels import Bilinear, Hermite
+from vsmuxtools import (
+    FLAC,
+    Resample,
+    Setup,
+    VideoFile,
+    do_audio,
+    mux,
+    settings_builder_x265,
+    src_file,
+    x265,
+)
+from vspreview import is_preview
+from vstools import core, finalize_clip, set_output
 
-core.max_cache_size = 1024 * 16
+core.max_cache_size = 1024 * 30
 
-source = core.lsmas.LWLibavSource(r"D:\00004.m2ts")
-src = initialize_clip(source, 16)
+source = src_file(r"00004.m2ts", force_lsmas=True)
+src = source.init_cut()
 
-descale = DescaleTarget(height=837.3, base_height=840, kernel=Lanczos(taps=4), upscaler=NNEDI_Doubler(opencl=False), downscaler=Gaussian(0.375, linear=True))
+descale = DescaleTarget(
+    height=837.3,
+    base_height=840,
+    kernel=Bilinear,
+    upscaler=NNEDI_Doubler(opencl=False),
+    downscaler=Hermite,
+)
 rescale = descale.get_upscaled(src)
 
-denoise = BM3DCPU.denoise(
-    rescale, 1, 1, profile=Profile.LOW_COMPLEXITY
-)
+denoise = BM3DCPU.denoise(rescale, 0.6, 3, profile=Profile.LOW_COMPLEXITY)
 
-aa = nnedi3(denoise, opencl=False)
-mask_deband = retinex_edgemask(aa, sigma=1)
+aa = transpose_aa(denoise, Eedi3(opencl=False))
 
-f3k = F3kdb.deband(denoise)
+mask_deband = deband_detail_mask(aa)
+f3k = F3kdb.deband(aa)
+debanded = core.std.MaskedMerge(f3k, aa, mask_deband)
 
-debanded = core.std.MaskedMerge(f3k, denoise, mask_deband)
+grain = adaptive_grain(debanded, 0.4)
 
-grain = adaptive_grain(debanded, 0.8)
+final = finalize_clip(grain, 10, False)
 
-final = finalize_clip(grain, 10)
+if is_preview():
+    set_output(src, "JPBD")
+    set_output(rescale)
+    set_output(final, "filter")
+else:
+    setup = Setup("01")
+    settings = settings_builder_x265(
+        preset="veryslow",
+        crf=13,
+        qcomp=0.75,
+        bframes=12,
+        rd=3,
+        rect=False,
+        ref=5,
+        limit_refs=1,
+        merange=57,
+    )
+    encoded = Path(setup.work_dir).joinpath("encoded.265").resolve()
+    video_hevc = (
+        VideoFile(encoded)
+        if encoded.exists()
+        else x265(
+            settings,
+            qp_clip=src,
+        ).encode(final)
+    )
 
-set_output(source)
-set_output(rescale)
-set_output(final)
+    audio = do_audio(
+        source,
+        track=0,
+        encoder=FLAC(preprocess=Resample(depth=None)),
+    )
 
-# if is_preview:
-#     set_output(src, "src")
-#     set_output(rescale, "rescale")
-#     set_output(final, "filtering")
-#     set_output(mask_deband)
-# else:
-#     set_output(final)
+    mux(
+        video_hevc.to_track(lang="jpn", default=True, forced=False),
+        audio.to_track("FLAC 2.0", "jpn", default=True, forced=False),
+    )
