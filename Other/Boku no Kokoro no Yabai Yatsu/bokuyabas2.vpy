@@ -22,7 +22,7 @@ from vstools import Sar, core, finalize_clip, set_output
 
 core.max_cache_size = 1024 * 30
 
-source = src_file(r"D:\00005.m2ts", force_lsmas=True)
+source = src_file(r"D:\00005.m2ts", trim=(24, None), force_lsmas=True)  # 33183
 src = source.init_cut()
 
 # idk how to work descale with this, I copy paste from this sheets
