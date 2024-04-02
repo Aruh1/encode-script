@@ -1,3 +1,4 @@
+from fractions import Fraction
 from pathlib import Path
 
 from kagefunc import adaptive_grain
@@ -5,7 +6,9 @@ from vsaa import Eedi3, transpose_aa
 from vsdeband import F3kdb, deband_detail_mask
 from vsdenoise import BM3DCPU, Profile
 from vsmuxtools import (
+    Chapters,
     Setup,
+    SubFile,
     VideoFile,
     do_audio,
     mux,
@@ -70,7 +73,26 @@ else:
         track=0,
     )
 
+    sub = SubFile(r"./wolf/Ookami - 01.ass")
+
+    fonts = sub.collect_fonts(additional_fonts=r"./wolf/")
+
+    chapters = Chapters(
+        [
+            (0, "Prolog"),
+            (2710, "Lagu Pembuka"),
+            (4867, "Bagian 1"),
+            (14075, "Bagian 2"),
+            (32008, "Lagu penutup"),
+            (34166, "Selanjutnya"),
+        ],
+        Fraction(final.fps_num, final.fps_den),
+    )
+
     mux(
         video_hevc.to_track(lang="jpn", default=True, forced=False),
+        sub.to_track("Delima", lang="id", default=True, forced=False),
         audio.to_track(lang="jpn", default=True, forced=False),
+        *fonts,
+        chapters,
     )
