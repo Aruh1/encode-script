@@ -119,7 +119,7 @@ sourceabm = src_file(
 )
 srcabm = sourceabm.init_cut()
 
-freq = frequency_merge([srcabm, srcamzn], mode_high=srcabm, mode_low=srcamzn)
+freq = frequency_merge([srcabm, srcamzn], mode_high=srcamzn, mode_low=srcabm)
 
 descale = DescaleTarget(
     height=720,
