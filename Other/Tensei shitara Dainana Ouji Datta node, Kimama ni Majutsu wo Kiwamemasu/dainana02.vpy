@@ -1,3 +1,4 @@
+from fractions import Fraction
 from pathlib import Path
 
 from kagefunc import adaptive_grain
@@ -23,7 +24,7 @@ from vstools import Sar, core, finalize_clip, set_output
 core.max_cache_size = 1024 * 30
 
 source = src_file(
-    r"D:\Downloads\torrent\I.Was.Reincarnated.as.the.7th.Prince.so.I.Can.Take.My.Time.Perfecting.My.Magical.Ability.S01E01.I.Reincarnated.as.the.Seventh.Prince.1080p.CR.WEB-DL.AAC2.0.H.264-VARYG.mkv",
+    r"C:\Users\samehadaku\Downloads\[SubsPlease] Dainanaoji - 02 (1080p) [DF639DB0].mkv",
     force_lsmas=True,
 )
 src = source.init_cut()
@@ -54,7 +55,7 @@ if is_preview():
     set_output(rescale)
     set_output(final, "filter")
 else:
-    setup = Setup("01")
+    setup = Setup("02")
     settings = settings_builder_x265(
         preset="veryslow",
         crf=13,
@@ -82,24 +83,27 @@ else:
     )
 
     durandalsub = SubFile(
-        r"./sub/[DurandalSubs] Dainanaoji - 01 [1080p][911D1DAF]_Subtitles01.IND.ass"
+        r"./sub/[DurandalSubs] Dainanaoji - 02 [1080p][7D3DCAEA]_Subtitles01.IND.ass"
     )
 
     fonts = durandalsub.collect_fonts(
         use_system_fonts=False,
-        additional_fonts=r"./sub/[DurandalSubs] Dainanaoji - 01 [1080p][911D1DAF]_Attachments",
+        additional_fonts=r"./sub/[DurandalSubs] Dainanaoji - 02 [1080p][7D3DCAEA]_Attachments",
     )
 
     chapters = Chapters(
         [
             (0, "Prolog"),
-            (4149, "Lagu Pembuka"),
-            (6306, "Bagian 1"),
-            (17527, "Eyecatch"),
-            (17647, "Bagian 2"),
-            (31769, "Lagu Penutup"),
-            (33927, "Cuplikan"),
+            (1272, "Lagu Pembuka"),
+            (3429, "Bagian 1"),
+            (13088, "Cuplikan 1"),
+            (14124, "Eyecatch"),
+            (14244, "Bagian 2"),
+            (30186, "Lagu Penutup"),
+            (32345, "Cuplikan 2"),
+            (33927, "Selanjutnya"),
         ],
+        Fraction(final.fps_num, final.fps_den),
     )
 
     mux(
