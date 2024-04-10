@@ -22,11 +22,8 @@ from vstools import (
     Sar,
     core,
     finalize_clip,
-    replace_ranges,
     set_output,
 )
-
-op = (30963, 33119)
 
 core.max_cache_size = 1024 * 30
 
@@ -51,18 +48,14 @@ descale = DescaleTarget(
 )
 rescale = descale.get_upscaled(srcabm)
 
-rfs = replace_ranges(rescale, srcabm, op)
+denoise = BM3DCPU.denoise(rescale, 0.6, 3, profile=Profile.LOW_COMPLEXITY)
 
-denoise = BM3DCPU.denoise(rfs, 0.6, 3, profile=Profile.LOW_COMPLEXITY)
-
-aa = transpose_aa(
-    denoise, Eedi3(0.125, 0.25, vthresh0=12, vthresh1=24, sclip_aa=None, opencl=False)
-)
+aa = transpose_aa(denoise, Eedi3(opencl=False))
 sar = Sar(1, 1).apply(aa)
 
-dehalo = fine_dehalo(sar, 1, 1, brightstr=1, darkstr=0)
-dehalo_mask = fine_dehalo(sar, 1, 1, brightstr=1, darkstr=0, show_mask=True)
-edgeclean = edge_cleaner(dehalo, 2, False)
+dehalo = fine_dehalo(sar, 2.2, 2.2, brightstr=1, darkstr=0)
+dehalo_mask = fine_dehalo(sar, 2.2, 2.2, brightstr=1, darkstr=0, show_mask=True)
+edgeclean = edge_cleaner(dehalo, 7, False)
 edgeclean = core.std.MaskedMerge(dehalo, edgeclean, dehalo_mask)
 contra = contrasharpening_dehalo(edgeclean, dehalo)
 
@@ -78,7 +71,6 @@ if is_preview():
     set_output(srcamzn, "AMZN")
     set_output(srcabm, "Abema")
     set_output(rescale)
-    set_output(aa)
     set_output(final, "filter")
 else:
     setup = Setup("01")
