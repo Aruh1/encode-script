@@ -1,39 +1,45 @@
-"""vspipe sukimega.vpy -c y4m - | x265-x64-v3.5+131-aMod-gcc13.1.0-opt-znver4.exe --y4m - --fps 24000/1001 --preset veryslow --profile main10 --output-depth 10 --input-depth 10 --crf 13 --no-cutree --no-sao --no-sao-non-deblock --keyint 240 --bframes 12 --psy-rd 2 --psy-rdoq 2.0 --aq-mode 3 --aq-strength 0.75 --ref 5 --rd 3 --subme 5 --qcomp 0.75 --colorprim bt709 --transfer bt709 --colormatrix bt709 --cbqpoffs -2 --crqpoffs -2 --tu-intra-depth 2 --tu-inter-depth 2 --sar 1 --no-rect --no-amp --no-tskip --b-intra --weightb --rskip 0 --no-strong-intra-smoothing --no-open-gop --deblock=-2:-2 --rc-lookahead 60 --limit-refs 1 --min-luma 64 --max-luma 940 --range limited --output "sukimega.hevc"""
+"""vspipe sukimega.vpy -c y4m - | x265-x64-v3.5+131-aMod-gcc13.1.0-opt-znver4.exe --y4m - --fps 24000/1001 --preset veryslow --profile main10 --output-depth 10 --input-depth 10 --crf 13 --no-cutree --no-sao --no-sao-non-deblock --keyint 240 --bframes 12 --psy-rd 2 --psy-rdoq 2.0 --aq-mode 3 --aq-strength 1.00 --ref 5 --rd 3 --subme 5 --qcomp 0.73 --colorprim bt709 --transfer bt709 --colormatrix bt709 --cbqpoffs -2 --crqpoffs -2 --tu-intra-depth 2 --tu-inter-depth 2 --sar 1 --no-rect --no-amp --no-tskip --b-intra --weightb --rskip 0 --no-strong-intra-smoothing --no-open-gop --deblock=-2:-2 --rc-lookahead 60 --limit-refs 1 --min-luma 64 --max-luma 940 --range limited --output "sukimega.hevc"""
 
+from vstools import core, set_output, initialize_clip, finalize_clip
 from awsmfunc import bbmod
-from kagefunc import adaptive_grain
-from vsaa import Eedi3, transpose_aa
-from vsdeband import F3kdb, deband_detail_mask
-from vsdehalo import dehalomicron
-from vsdenoise import BM3DCPU, Prefilter, Profile
-from vstools import core, finalize_clip, initialize_clip, set_output
+from vsdenoise import BM3DCPU, Profile
+from vspreview import is_preview
+from vsdeband import F3kdb
+from kagefunc import adaptive_grain, retinex_edgemask
+from polofunc import nnedi3
+from vsdehalo import smooth_dering
 
-core.max_cache_size = 1024 * 30
+core.max_cache_size = 1024 * 2
 
-source = core.lsmas.LWLibavSource(r"C:\Users\samehadaku\Downloads\00006.m2ts")
-src = initialize_clip(source, 16)
+tv = core.lsmas.LWLibavSource(
+    r"00007.m2ts"
+)
+src = initialize_clip(tv, 16)
 
 edgefix = bbmod(src, 1, 1, 1, 1, 30)
 
-denoise = BM3DCPU.denoise(edgefix, 1, 1, profile=Profile.LOW_COMPLEXITY)
+# descale = DescaleTarget(height=810, kernel=Bilinear,upscaler=NNEDI_Doubler(opencl=False)).generate_clips(src)
+# rescaled = descale.get_upscaled(src)
 
-aa = transpose_aa(denoise, Eedi3(opencl=False))
-
-dehaloed = dehalomicron(
-    aa,
-    brz=0.075,
-    sigma=1.55,
-    sigma0=1.15,
-    dampen=(0.65, True),
-    blur_func=Prefilter.GAUSSBLUR2,
+denoise = BM3DCPU.denoise(
+    edgefix, 1, 1, profile=Profile.LOW_COMPLEXITY
 )
 
-mask_deband = deband_detail_mask(dehaloed)
-f3k = F3kdb.deband(dehaloed)
-debanded = core.std.MaskedMerge(f3k, dehaloed, mask_deband)
+aa = nnedi3(denoise, opencl=False)
+dering = smooth_dering(aa, mrad=3, msmooth=1, minp=1, mthr=0.20, darkthr=0, contra=0)
 
-grain = adaptive_grain(debanded, 0.5)
+mask_deband = retinex_edgemask(dering, sigma=1)
+f3k = F3kdb.deband(dering)
+debanded = core.std.MaskedMerge(f3k, denoise, mask_deband)
+
+grain = adaptive_grain(debanded, 0.8)
 
 out = finalize_clip(grain, 10)
 
 set_output(out)
+
+# if is_preview():
+#     set_output(tv, "src")
+#     set_output(out, "filtering")
+# else:
+#     set_output(out)
