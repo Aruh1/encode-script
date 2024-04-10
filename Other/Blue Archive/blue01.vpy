@@ -28,13 +28,13 @@ from vstools import (
 core.max_cache_size = 1024 * 30
 
 sourceamzn = src_file(
-    r"C:\Users\samehadaku\Downloads\Blue Archive The Animation - S01E01 - 1080p WEB H.264 -NanDesuKa (AMZN).mkv",
+    r"D:\Downloads\Blue Archive The Animation - S01E01 - 1080p WEB H.264 -NanDesuKa (AMZN).mkv",
     force_lsmas=True,
 )
 srcamzn = sourceamzn.init_cut()
 
 sourceabm = src_file(
-    r"C:\Users\samehadaku\Downloads\[Ioroid] Blue Archive the Animation - 01 [ABEMA WEB-DL 1080p AVC AAC].mkv",
+    r"D:\Downloads\[Ioroid] Blue Archive the Animation - 01 [ABEMA WEB-DL 1080p AVC AAC].mkv",
     force_lsmas=True,
 )
 srcabm = sourceabm.init_cut()
