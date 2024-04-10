@@ -4,20 +4,23 @@ from kagefunc import adaptive_grain
 from vsaa import Eedi3, transpose_aa
 from vsdeband import F3kdb, deband_detail_mask
 from vsdenoise import BM3DCPU, Profile
-from vstools import core, finalize_clip, initialize_clip, set_output
+from vstools import ChromaLocation, core, finalize_clip, initialize_clip, set_output
 
-core.max_cache_size = 1024 * 30
+core.max_cache_size = 1024 * 7
 
 source = core.lsmas.LWLibavSource(
-    r"C:\Users\Administrator\Desktop\hoshikuzu\00000.m2ts"
+    r"D:\Download\[SubsPlease] Hoshikuzu Telepath - 01 (1080p) [0C109EDF].mkv"
 )
 src = initialize_clip(source, 16)
 
 # Native resolution is ~900p, but nevertheless it's not descaleable.
 
 denoise = BM3DCPU.denoise(src, 1, 3, profile=Profile.LOW_COMPLEXITY)
+denoised_luma = ChromaLocation.ensure_presence(
+    denoise, ChromaLocation.from_video(src, strict=True)
+)
 
-aa = transpose_aa(denoise, Eedi3(opencl=False))
+aa = transpose_aa(denoised_luma, Eedi3(opencl=False))
 
 mask_deband = deband_detail_mask(aa)
 f3k = F3kdb.deband(aa)
@@ -27,4 +30,5 @@ grain = adaptive_grain(debanded, 0.4)
 
 final = finalize_clip(grain, 10, False)
 
+set_output(source)
 set_output(final)
