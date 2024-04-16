@@ -24,7 +24,7 @@ from vstools import Sar, core, finalize_clip, set_output
 core.max_cache_size = 1024 * 30
 
 source = src_file(
-    r"C:\Users\samehadaku\Downloads\[SubsPlease] Dainanaoji - 03 (1080p) [78FB7B6E].mkv",
+    r"D:\Downloads\[SubsPlease] Dainanaoji - 03 (1080p) [78FB7B6E].mkv",
     force_lsmas=True,
 )
 src = source.init_cut()
