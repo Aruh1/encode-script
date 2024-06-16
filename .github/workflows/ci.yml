@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CC: gcc-12
-      CXX: g++-12
+      CC: gcc-13
+      CXX: g++-13
     steps:
       - uses: actions/checkout@v4.1.7
       - run: ${{ env.CC }} --version
@@ -29,6 +29,8 @@ jobs:
         run: python3 -c "import vapoursynth; print(vapoursynth.core.version())"
       - name: Install dependencies
         run: python3 -m pip install -r requirements.txt -r requirements-dev.txt
+      - name: vs-jet latest
+        run: vsjet latest
       - name: mypy
         run: for dir in src/*/; do python3 -m mypy --ignore-missing-imports "$dir"; done
         continue-on-error: true
