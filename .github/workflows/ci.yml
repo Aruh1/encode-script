@@ -32,7 +32,7 @@ jobs:
       - name: vs-jet latest
         run: vsjet latest
       - name: mypy
-        run: for dir in src/*/; do python3 -m mypy --ignore-missing-imports "$dir"; done
+        run: for dir in *; do python3 -m mypy --ignore-missing-imports "$dir"; done
         continue-on-error: true
       - name: flake8
         run: python3 -m flake8
