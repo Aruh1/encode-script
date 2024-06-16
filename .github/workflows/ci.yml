@@ -13,16 +13,16 @@ jobs:
       - run: ${{ env.CC }} --version
       - uses: actions/setup-python@v5.1.0
         with:
-          python-version: '3.12.2'
+          python-version: '3.12.4'
           cache: 'pip'
       - name: Update pip
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip --version
       - name: Install VapourSynth
-        uses: rlaphoenix/install-vapoursynth-action@v2.1.1
+        uses: rlaphoenix/install-vapoursynth-action@master
         with:
-          version: 66
+          version: 68
           cache: true
       - run: python3 -m pip inspect
       - name: Verify VapourSynth install
