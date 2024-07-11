@@ -17,7 +17,7 @@ from vspreview import is_preview
 from vstools import Keyframes, core, finalize_clip, set_output
 
 eps = "02"
-dirsource = r"C:\Users\samehadaku\Downloads"
+dirsource = r"D:\tongren"
 
 core.max_cache_size = 1024 * 40
 
