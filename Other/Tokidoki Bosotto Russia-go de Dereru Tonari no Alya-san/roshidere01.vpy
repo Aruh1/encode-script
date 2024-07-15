@@ -16,7 +16,15 @@ from vsmuxtools import (
 )
 from vspreview import is_preview
 from vssource import IMWRI
-from vstools import Matrix, core, finalize_clip, get_y, replace_ranges, set_output
+from vstools import (
+    Keyframes,
+    Matrix,
+    core,
+    finalize_clip,
+    get_y,
+    replace_ranges,
+    set_output,
+)
 
 eps = "01"
 dirsource = r"D:\tongren"
@@ -36,6 +44,12 @@ source = src_file(sourcesrc, force_bs=True)
 src = source.init_cut()
 amznsource = src_file(sourceamzn, force_bs=True)
 srcamzn = amznsource.init_cut()
+
+keyframes = Path("./").joinpath(f"{eps}.txt").resolve()
+if keyframes.exists():
+    None
+else:
+    Keyframes.from_clip(src).to_file(f"{eps}.txt")
 
 freezeschool = core.std.FreezeFrames(
     src, first=[28123], last=[28233], replacement=[28122]
@@ -70,7 +84,9 @@ clean = replace_ranges(
     (28234, 28440),
 )
 
-dns = VMDegrain(clean, thSAD=80, prefilter=4)
+tenmin = core.std.FreezeFrames(clean, first=[31167], last=[31205], replacement=[31166])
+
+dns = VMDegrain(tenmin, thSAD=80, prefilter=4)
 
 aa = fine_aa(dns, taa=True)
 
