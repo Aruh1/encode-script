@@ -22,11 +22,11 @@ jobs:
       - name: Install VapourSynth
         uses: rlaphoenix/install-vapoursynth-action@master
         with:
-          version: 68
+          version: 69
           cache: true
       - run: python3 -m pip inspect
       - name: Verify VapourSynth install
-        run: python3 -c "import vapoursynth; print(vapoursynth.core.version())"
+        run: python3 -c "from vapoursynth import core; print(core)"
       - name: Install dependencies
         run: python3 -m pip install -r requirements.txt -r requirements-dev.txt
       - name: vs-jet latest
