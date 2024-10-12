@@ -6,4 +6,4 @@ getnative @ git+https://github.com/Infiziert90/getnative
 getnativef @ git+https://github.com/Vodes/getnativef
 
 # dependencies of vspreview plugins
-scipy==1.14.0
+scipy==1.14.1
