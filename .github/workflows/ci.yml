@@ -32,5 +32,5 @@ jobs:
       - name: vs-jet latest
         run: vsjet latest
       - name: Running ruff
-        run: ruff check vsaa
+        run: ruff check encode-script
         continue-on-error: true
