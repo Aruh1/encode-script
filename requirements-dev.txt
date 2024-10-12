@@ -1,7 +1,4 @@
-black==24.4.2
-flake8==7.1.0
-isort==5.13.2
-mypy==1.11.0
+ruff>=0.6.5
 
 fontvalidator @ git+https://github.com/Funami580/Myaamori-Aegisub-Scripts#subdirectory=scripts/fontvalidator
 getfscaler @ git+https://github.com/Jaded-Encoding-Thaumaturgy/getfscaler
